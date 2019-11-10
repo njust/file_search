@@ -51,11 +51,9 @@ pub fn has_extension<P: AsRef<Path>>(path: P, extensions: &HashSet<&str>) -> boo
     return false;
 }
 
-pub fn is_dir(e: &std::io::Result<DirEntry>) -> bool {
-    if let Ok(e) = e {
-        if let Ok(meta) = e.metadata() {
-            return meta.is_dir();
-        }
+pub fn is_dir(e: &DirEntry) -> bool {
+    if let Ok(meta) = e.metadata() {
+        return meta.is_dir();
     }
     return false;
 }
@@ -69,14 +67,15 @@ impl Iterator for RecursiveDirIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(mut iter) = self.stack.pop() {
-            while let Some(entry) = iter.next() {
+            while let Some(Ok(entry)) = iter.next() {
                 if is_dir(&entry) {
-                    let dir = std::fs::read_dir(entry.expect("Dir!").path()).expect("as");
-                    self.stack.push(dir);
+                    if let Ok(dir) = std::fs::read_dir(entry.path()) {
+                        self.stack.push(dir);
+                    }
                     continue;
                 }
                 self.stack.push(iter);
-                return Some(entry);
+                return Some(Ok(entry));
             }
         }
         None

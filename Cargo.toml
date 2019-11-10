@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 iced = {git = "https://github.com/hecrj/iced.git"}
+dirs = "2.0.2"

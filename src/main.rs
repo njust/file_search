@@ -5,6 +5,8 @@ use iced::{
     Color, Column, Element, Length, Scrollable, Text, TextInput, Row
 };
 
+use dirs;
+
 const ITEMS_PER_PAGE: i32 = 100;
 
 #[derive(Debug, Clone)]
@@ -105,11 +107,13 @@ impl Application for SearchUi {
                 open_file(item);
             }
             Message::SearchPressed => {
-                self.search_results.clear();
-                self.search_iter.take();
-                if let Ok(res) = RecursiveDirIterator::new(r"/home/nico/sync/") {
-                    self.search_iter = Some(res);
-                    self.load_results();
+                if let Some(home_dir) = dirs::home_dir() {
+                    self.search_results.clear();
+                    self.search_iter.take();
+                    if let Ok(res) = RecursiveDirIterator::new(home_dir) {
+                        self.search_iter = Some(res);
+                        self.load_results();
+                    }
                 }
             }
             Message::LoadMorePressed => {
