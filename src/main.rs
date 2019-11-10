@@ -1,5 +1,5 @@
 use std::borrow::{BorrowMut};
-use file_search::{RecursiveDirIterator};
+use file_search::{RecursiveDirIterator, open_file};
 use iced::{
     scrollable, button, text::HorizontalAlignment, Background, text_input, Application, Button,
     Color, Column, Element, Length, Scrollable, Text, TextInput, Row
@@ -87,19 +87,6 @@ fn create_button<'a, Message>(label: &str, state: &'a mut button::State) -> Butt
             r: 0.0, g: 0.0, b: 0.2, a: 0.5
         }))
         .padding(4)
-}
-
-fn open_file(file_path: &String) {
-    if cfg!(target_os = "windows") {
-        std::process::Command::new(file_path)
-            .spawn()
-            .expect("asd");
-    }else {
-        std::process::Command::new("/usr/bin/xdg-open")
-            .arg(file_path)
-            .spawn()
-            .expect("asd");
-    }
 }
 
 impl Application for SearchUi {

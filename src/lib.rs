@@ -1,6 +1,28 @@
 use std::path::{Path};
 use std::collections::{HashSet};
 use std::fs::{DirEntry};
+use std::process::Stdio;
+
+pub fn open_file(file_path: &String) {
+    if cfg!(target_os = "windows") {
+        if let Err(err) = std::process::Command::new("cmd")
+            .arg("/C")
+            .arg("start")
+            .arg(file_path)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn() {
+            println!("Could not open file: {:?}", err);
+        }
+    }else {
+        if let Err(err) = std::process::Command::new("/usr/bin/xdg-open")
+            .arg(file_path)
+            .spawn() {
+            println!("Could not open file: {:?}", err);
+        }
+    }
+}
 
 pub fn ignore_entry<P: AsRef<Path>>(path: P, ignore_list: &HashSet<&str>) -> bool {
     let path = path.as_ref().to_str().expect("Not a valid path");
