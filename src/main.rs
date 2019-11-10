@@ -9,7 +9,8 @@ use iced::{
 #[derive(Debug, Clone)]
 enum Message {
     InputChanged(String),
-    SearchPressed
+    SearchPressed,
+    ItemSelected(String)
 }
 
 #[derive(Debug, Default)]
@@ -18,16 +19,48 @@ struct SearchUi {
     scrollable: scrollable::State,
     button: button::State,
     search_text : String,
-    search_results: Vec<String>
+    search_results: Vec<ResultItem>
+}
+
+#[derive(Debug, Default)]
+struct ResultItem {
+    path: String,
+    button: button::State
+}
+
+impl ResultItem {
+    fn new(path: String) -> Self {
+        ResultItem {
+            button: button::State::default(),
+            path
+        }
+    }
+
+    fn view(&mut self) -> Element<Message> {
+        Button::new(
+            &mut self.button,
+            Text::new(&self.path)
+        )
+        .on_press(Message::ItemSelected(self.path.clone()))
+        .background(Background::Color(Color::WHITE))
+        .into()
+    }
 }
 
 impl Application for SearchUi {
     type Message = Message;
 
+    fn title(&self) -> String {
+        String::from("Search")
+    }
+
     fn update(&mut self, message: Self::Message) {
         match message {
             Message::InputChanged(search_text) => {
                 self.search_text = search_text;
+            }
+            Message::ItemSelected(ref item) => {
+                println!("Selected item: {}", item);
             }
             Message::SearchPressed => {
                 self.search_results.clear();
@@ -37,7 +70,7 @@ impl Application for SearchUi {
                             let path = entry.path();
                             let path = path.to_str().expect("as").to_owned();
                             if path.contains(&self.search_text) {
-                                self.search_results.push(path);
+                                self.search_results.push(ResultItem::new(path));
                             }
                         }
                     }
@@ -56,7 +89,11 @@ impl Application for SearchUi {
 
         let btn = Button::new(
             &mut self.button,
-            Text::new("Search"))
+            Text::new("Search").horizontal_alignment(HorizontalAlignment::Center))
+            .border_radius(4)
+            .background(Background::Color(Color{
+                r: 0.0, g: 0.0, b: 0.2, a: 0.5
+            }))
             .padding(4)
             .on_press(Message::SearchPressed);
 
@@ -68,7 +105,7 @@ impl Application for SearchUi {
         let results = self.search_results.iter_mut().enumerate().fold(
             Column::new().spacing(4),
             | column, (i, result)| {
-                column.push(Text::new(result.as_str()))
+                column.push(result.view())
             });
 
         Column::new()
