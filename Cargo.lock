@@ -428,6 +428,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "file_search"
+version = "0.1.0"
+dependencies = [
+ "iced 0.1.0-alpha.1 (git+https://github.com/hecrj/iced.git)",
+]
+
+[[package]]
 name = "float-ord"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1416,13 +1423,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "scopeguard"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "search_test"
-version = "0.1.0"
-dependencies = [
- "iced 0.1.0-alpha.1 (git+https://github.com/hecrj/iced.git)",
-]
 
 [[package]]
 name = "semver"

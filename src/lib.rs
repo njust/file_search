@@ -2,7 +2,6 @@ use std::path::{Path};
 use std::collections::{HashSet};
 use std::fs::{DirEntry};
 
-
 pub fn ignore_entry<P: AsRef<Path>>(path: P, ignore_list: &HashSet<&str>) -> bool {
     let path = path.as_ref().to_str().expect("Not a valid path");
     for ignore in ignore_list {
