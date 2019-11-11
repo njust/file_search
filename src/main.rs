@@ -1,11 +1,13 @@
 use std::borrow::{BorrowMut};
 use file_search::{RecursiveDirIterator, open_file};
+use uuid::Uuid;
 use iced::{
     scrollable, button, text::HorizontalAlignment, Background, text_input, Application, Button,
     Color, Column, Element, Length, Scrollable, Text, TextInput, Row
 };
 
 use dirs;
+use std::collections::HashMap;
 
 const ITEMS_PER_PAGE: i32 = 100;
 
@@ -14,7 +16,8 @@ enum Message {
     InputChanged(String),
     SearchPressed,
     ItemSelected(String),
-    LoadMorePressed
+    LoadMorePressed,
+    TabSelected(Uuid)
 }
 
 #[derive(Default)]
@@ -25,9 +28,12 @@ struct SearchUi {
     load_more_btn: button::State,
     search_text : String,
     search_results: Vec<ResultItem>,
+    tab_items: HashMap<Uuid, TabItem>,
     search_iter: Option<RecursiveDirIterator>,
     show_more_visible: bool
 }
+
+
 
 #[derive(Debug, Default)]
 struct ResultItem {
@@ -55,7 +61,51 @@ impl ResultItem {
     }
 }
 
+#[derive(Debug)]
+struct TabItem {
+    id: Uuid,
+    label: String,
+    button: button::State
+}
+
+impl TabItem {
+    fn new(label: &'static str) -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            label: label.to_owned(),
+            button: button::State::default()
+        }
+    }
+
+    fn tab_header(&mut self) -> Element<Message> {
+        Button::new(
+            &mut self.button,
+            Text::new(&self.label),
+        )
+            .width(Length::Units(200))
+            .on_press(Message::TabSelected(self.id))
+            .into()
+    }
+
+//    fn view() -> Element<Message> {
+//    }
+}
+
+trait TabItemView {
+    fn view(&mut self) -> Element<Message>;
+}
+
 impl SearchUi {
+    fn new(mut tabs: Vec<TabItem>) -> Self {
+        let tab_map = tabs.into_iter().fold(HashMap::new(), |mut map, tab| {
+            map.insert(tab.id, tab);
+            map
+        });
+        Self {
+            tab_items: tab_map,
+            ..Self::default()
+        }
+    }
     fn load_results(&mut self) {
         if let Some(mut res) = self.search_iter.take() {
             let search = &self.search_text.to_lowercase();
@@ -78,51 +128,8 @@ impl SearchUi {
             self.search_iter = Some(res);
         }
     }
-}
 
-fn create_button<'a, Message>(label: &str, state: &'a mut button::State) -> Button<'a, Message> {
-    Button::new(
-        state,
-        Text::new(label).horizontal_alignment(HorizontalAlignment::Center))
-        .border_radius(4)
-        .background(Background::Color(Color{
-            r: 0.0, g: 0.0, b: 0.2, a: 0.5
-        }))
-        .padding(4)
-}
-
-impl Application for SearchUi {
-    type Message = Message;
-
-    fn title(&self) -> String {
-        String::from("Search")
-    }
-
-    fn update(&mut self, message: Self::Message) {
-        match message {
-            Message::InputChanged(search_text) => {
-                self.search_text = search_text;
-            }
-            Message::ItemSelected(ref item) => {
-                open_file(item);
-            }
-            Message::SearchPressed => {
-                if let Some(home_dir) = dirs::home_dir() {
-                    self.search_results.clear();
-                    self.search_iter.take();
-                    if let Ok(res) = RecursiveDirIterator::new(home_dir) {
-                        self.search_iter = Some(res);
-                        self.load_results();
-                    }
-                }
-            }
-            Message::LoadMorePressed => {
-                self.load_results();
-            }
-        }
-    }
-
-    fn view(&mut self) -> Element<Message> {
+    fn search_page(&mut self) -> Element<Message>  {
         let input = TextInput::new(
             &mut self.input,
             "Search",
@@ -166,6 +173,70 @@ impl Application for SearchUi {
     }
 }
 
+fn create_button<'a, Message>(label: &str, state: &'a mut button::State) -> Button<'a, Message> {
+    Button::new(
+        state,
+        Text::new(label).horizontal_alignment(HorizontalAlignment::Center))
+        .border_radius(4)
+        .background(Background::Color(Color{
+            r: 0.0, g: 0.0, b: 0.2, a: 0.5
+        }))
+        .padding(4)
+}
+
+impl Application for SearchUi {
+    type Message = Message;
+
+    fn title(&self) -> String {
+        String::from("Search")
+    }
+
+    fn update(&mut self, message: Self::Message) {
+        match message {
+            Message::InputChanged(search_text) => {
+                self.search_text = search_text;
+            }
+            Message::ItemSelected(ref item) => {
+                open_file(item);
+            }
+            Message::SearchPressed => {
+                if let Some(home_dir) = dirs::home_dir() {
+                    self.search_results.clear();
+                    self.search_iter.take();
+                    if let Ok(res) = RecursiveDirIterator::new(home_dir) {
+                        self.search_iter = Some(res);
+                        self.load_results();
+                    }
+                }
+            }
+            Message::LoadMorePressed => {
+                self.load_results();
+            }
+            Message::TabSelected(id) => {
+                if let Some(tab) = self.tab_items.get(&id) {
+                    println!("Selected tab: {:?}", tab);
+                }
+            }
+        }
+    }
+
+    fn view(&mut self) -> Element<Message> {
+        let tabs = self.tab_items.iter_mut().fold(Row::new(), |row, (tab_id, tab)| {
+            row.push(tab.tab_header())
+        });
+
+        Column::new()
+            .push(tabs)
+            .push(Text::new("gerda"))
+            .into()
+    }
+}
+
 fn main() {
-    SearchUi::default().run();
+    let tabs = vec![
+        TabItem::new("Tab1"),
+        TabItem::new("Tab2"),
+    ];
+    let ui = SearchUi::new(tabs);
+    ui.run();
 }
