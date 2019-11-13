@@ -5,6 +5,9 @@ use iced::{
 };
 
 use std::collections::HashMap;
+use std::rc::Rc;
+use std::cell::{RefCell, Cell};
+use std::borrow::BorrowMut;
 
 #[derive(Debug, Clone)]
 enum Message {
@@ -13,7 +16,7 @@ enum Message {
 }
 
 struct SearchUi {
-    tab: TabControl,
+    tab_control: TabControl,
 }
 
 struct TabItem {
@@ -54,7 +57,7 @@ impl Application for SearchUi {
     fn update(&mut self, message: Self::Message) {
         match message {
             Message::TabSelected(id) => {
-                self.tab.select_tab(id);
+                self.tab_control.select_tab(id);
             }
             Message::Inc => {
             }
@@ -62,14 +65,35 @@ impl Application for SearchUi {
     }
 
     fn view(&mut self) -> Element<Message> {
-      self.tab.view()
+        let mut c = Column::new();
+        {
+            let th = self.th();
+            println!("{:?}");
+//            c = c.push(th);
+        }
+        {
+            let tv = self.tv();
+            c = c.push(tv);
+        }
+
+        c.into()
+    }
+}
+
+impl SearchUi {
+    fn th(&mut self) -> Element<Message> {
+        self.tab_control.tab_header()
+    }
+
+    fn tv(&mut self) -> Element<Message> {
+        self.tab_control.tab_view()
     }
 }
 
 #[derive(Default)]
 struct TabControl {
     tab_items: HashMap<Uuid, TabItem>,
-    tab_view: Option<Box<dyn TabItemView>>,
+    active_tab: Option<Uuid>,
 }
 
 impl TabControl {
@@ -85,24 +109,29 @@ impl TabControl {
     }
 
     pub fn select_tab(&mut self, id: Uuid) {
-        if let Some(tab) = self.tab_items.get(&id) {
-//            self.tab_view = Some(tab.view);
-        }
+        self.active_tab = Some(id);
     }
 
-    fn view(&mut self) -> Element<Message> {
-        let tabs = self.tab_items.iter_mut().fold(Row::new(), |row, (_tab_id, tab)| {
+    fn tab_header(&mut self) -> Element<Message> {
+        let cols = Column::new();
+        let tabs = self.tab_items.iter_mut().fold(Row::new(), |mut row, (_tab_id, tab)| {
             row.push(tab.tab_header())
         });
 
-        let mut cols = Column::new()
-            .push(tabs);
 
-        if let Some(ref tab_view) = &self.tab_view {
-//            cols = cols.push(tab_view.view());
+
+
+        return cols.push(tabs)
+            .into();
+    }
+
+    fn tab_view(&mut self) -> Element<Message> {
+        if let Some(tid) = self.active_tab {
+            if let Some(t) = self.tab_items.get_mut(&tid) {
+                return t.view.view();
+            }
         }
-
-        return cols.into();
+        Text::new("Nothing").into()
     }
 }
 
@@ -134,7 +163,7 @@ fn main() {
         TabItem::new("Tab1", Box::new(Counter::default()))
     ];
     let sui = SearchUi {
-        tab: TabControl::new(tabs)
+        tab_control: TabControl::new(tabs)
     };
     sui.run();
 }
