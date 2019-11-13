@@ -12,24 +12,23 @@ enum Message {
     Inc
 }
 
-struct SearchUi<'s> {
-    tab: TabControl<'s>,
+struct SearchUi {
+    tab: TabControl,
 }
 
-#[derive(Debug, Default)]
-struct TabItem<'a> {
+struct TabItem {
     id: Uuid,
     label: String,
-    view: Option<fn() -> Element<'a, Message>>,
+    view: Box<dyn TabItemView>,
     button: button::State
 }
 
-impl<'a> TabItem<'a> {
-    fn new(label: &'static str, view: fn() -> Element<'a, Message>) -> Self {
+impl TabItem {
+    fn new(label: &'static str, view: Box<dyn TabItemView>) -> Self {
         Self {
             id: Uuid::new_v4(),
             label: label.to_owned(),
-            view: Some(view),
+            view,
             button: button::State::default()
         }
     }
@@ -45,7 +44,7 @@ impl<'a> TabItem<'a> {
     }
 }
 
-impl<'a> Application for SearchUi<'a> {
+impl Application for SearchUi {
     type Message = Message;
 
     fn title(&self) -> String {
@@ -68,13 +67,13 @@ impl<'a> Application for SearchUi<'a> {
 }
 
 #[derive(Default)]
-struct TabControl<'s> {
-    tab_items: HashMap<Uuid, TabItem<'s>>,
-    tab_view: Option<fn() -> Element<'s, Message>>,
+struct TabControl {
+    tab_items: HashMap<Uuid, TabItem>,
+    tab_view: Option<Box<dyn TabItemView>>,
 }
 
-impl<'s> TabControl<'s> {
-    fn new(tabs: Vec<TabItem<'s>>) -> Self {
+impl TabControl {
+    fn new(tabs: Vec<TabItem>) -> Self {
         let tab_map = tabs.into_iter().fold(HashMap::new(), |mut map, tab| {
             map.insert(tab.id, tab);
             map
@@ -87,7 +86,7 @@ impl<'s> TabControl<'s> {
 
     pub fn select_tab(&mut self, id: Uuid) {
         if let Some(tab) = self.tab_items.get(&id) {
-            self.tab_view = tab.view;
+//            self.tab_view = Some(tab.view);
         }
     }
 
@@ -99,8 +98,8 @@ impl<'s> TabControl<'s> {
         let mut cols = Column::new()
             .push(tabs);
 
-        if let Some(active_tab) = self.tab_view {
-            cols = cols.push(active_tab());
+        if let Some(ref tab_view) = &self.tab_view {
+//            cols = cols.push(tab_view.view());
         }
 
         return cols.into();
@@ -132,12 +131,7 @@ impl TabItemView for Counter {
 
 fn main() {
     let tabs = vec![
-        TabItem::new("Tab1", || {
-            Text::new("hudel").into()
-        }),
-        TabItem::new("Tab2", || {
-            Text::new("gerda").into()
-        }),
+        TabItem::new("Tab1", Box::new(Counter::default()))
     ];
     let sui = SearchUi {
         tab: TabControl::new(tabs)
