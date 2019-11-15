@@ -5,6 +5,8 @@ use iced::{
 };
 
 use std::collections::HashMap;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 #[derive(Debug, Clone)]
 enum Message {
@@ -19,16 +21,14 @@ struct SearchUi {
 struct TabItem {
     id: Uuid,
     label: String,
-    view: Box<dyn TabItemView>,
     button: button::State
 }
 
 impl TabItem {
-    fn new(label: &'static str, view: Box<dyn TabItemView>) -> Self {
+    fn new(label: &'static str, id: Uuid) -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id,
             label: label.to_owned(),
-            view,
             button: button::State::default()
         }
     }
@@ -68,38 +68,41 @@ impl Application for SearchUi {
 
 #[derive(Default)]
 struct TabControl {
-    tab_items: HashMap<Uuid, TabItem>,
-    tab_view: Option<Box<dyn TabItemView>>,
+    tab_items: HashMap<Uuid, Rc<Box<dyn TabItemView>>>,
+    tab_header: HashMap<Uuid, TabItem>,
+    tab_view: Option<Rc<RefCell<dyn TabItemView>>>,
 }
 
 impl TabControl {
-    fn new(tabs: Vec<TabItem>) -> Self {
-        let tab_map = tabs.into_iter().fold(HashMap::new(), |mut map, tab| {
-            map.insert(tab.id, tab);
-            map
-        });
-        Self {
-            tab_items: tab_map,
-            ..Self::default()
-        }
+    fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn add_tab(&mut self, label: &'static str, view: Box<dyn TabItemView>) {
+        let id = Uuid::new_v4();
+        self.tab_header.insert(id, TabItem::new(label, id));
+        self.tab_items.insert(id, Rc::new(view));
     }
 
     pub fn select_tab(&mut self, id: Uuid) {
         if let Some(tab) = self.tab_items.get(&id) {
-//            self.tab_view = Some(tab.view);
+//            self.tab_view = Some(tab.clone());
         }
     }
 
     fn view(&mut self) -> Element<Message> {
-        let tabs = self.tab_items.iter_mut().fold(Row::new(), |row, (_tab_id, tab)| {
+        let tabs = self.tab_header.iter_mut().fold(Row::new(), |row, (_tab_id, tab)| {
             row.push(tab.tab_header())
         });
 
         let mut cols = Column::new()
             .push(tabs);
 
-        if let Some(ref tab_view) = &self.tab_view {
-//            cols = cols.push(tab_view.view());
+        if let Some(tab_view) = &self.tab_view {
+            let mut tab_view = tab_view.clone();
+            let mut view = tab_view.borrow_mut();
+            let v = view.view();
+            cols = cols.push(v);
         }
 
         return cols.into();
@@ -130,11 +133,11 @@ impl TabItemView for Counter {
 }
 
 fn main() {
-    let tabs = vec![
-        TabItem::new("Tab1", Box::new(Counter::default()))
-    ];
+    let mut tc = TabControl::new();
+    tc.add_tab("Tab1", Box::new(Counter::default()));
+    tc.add_tab("Tab2", Box::new(Counter::default()));
     let sui = SearchUi {
-        tab: TabControl::new(tabs)
+        tab: tc
     };
     sui.run();
 }
