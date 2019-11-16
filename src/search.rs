@@ -1,8 +1,8 @@
 use std::borrow::{BorrowMut};
-use file_search::{RecursiveDirIterator, open_file, Message, SearchMessage};
+use file_search::{RecursiveDirIterator, open_file, Message, SearchMessage, create_button};
 use iced::{
-    scrollable, button, text::HorizontalAlignment, Background, text_input, Button,
-    Color, Column, Element, Length, Scrollable, Text, TextInput, Row
+    scrollable, button, text_input, Button,
+    Column, Element, Length, Scrollable, Text, TextInput, Row
 };
 
 use dirs;
@@ -137,17 +137,6 @@ impl SearchUi {
             }
         }
     }
-}
-
-fn create_button<'a, Message>(label: &str, state: &'a mut button::State) -> Button<'a, Message> {
-    Button::new(
-        state,
-        Text::new(label).horizontal_alignment(HorizontalAlignment::Center))
-        .border_radius(4)
-        .background(Background::Color(Color{
-            r: 0.0, g: 0.0, b: 0.2, a: 0.5
-        }))
-        .padding(4)
 }
 
 impl TabItemView for SearchUi {

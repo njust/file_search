@@ -62,7 +62,7 @@ pub trait TabMessages<T> {
 #[derive(Default)]
 pub struct TabControl<Message, MsgSender: TabMessages<Message>> {
     tab_items: HashMap<Uuid, Box<dyn TabItemView<Message =Message>>>,
-    tab_header: HashMap<Uuid, TabItem<Message, MsgSender>>,
+    tab_header: Vec<TabItem<Message, MsgSender>>,
     selected_tab: Option<Uuid>,
     mh: PhantomData<MsgSender>,
 }
@@ -71,7 +71,7 @@ impl<Message: 'static + Clone + Debug, MsgSender: TabMessages<Message>> TabContr
     pub fn new() -> TabControl<Message, MsgSender> {
         Self {
             tab_items: HashMap::new(),
-            tab_header: HashMap::new(),
+            tab_header: Vec::new(),
             selected_tab: None,
             mh: PhantomData::default()
         }
@@ -80,7 +80,7 @@ impl<Message: 'static + Clone + Debug, MsgSender: TabMessages<Message>> TabContr
     pub fn add<T: 'static + TabItemView<Message = Message>>(&mut self, label: &'static str, view: T) {
         let view = Box::new(view);
         let id = Uuid::new_v4();
-        self.tab_header.insert(id, TabItem::new(label, id));
+        self.tab_header.push(TabItem::new(label, id));
         self.tab_items.insert(id, view);
     }
 
@@ -89,7 +89,7 @@ impl<Message: 'static + Clone + Debug, MsgSender: TabMessages<Message>> TabContr
     }
 
     pub fn view(&mut self) -> Element<Message> {
-        let tabs = self.tab_header.iter_mut().fold(Row::new().spacing(3), |row, (_tab_id, tab)| {
+        let tabs = self.tab_header.iter_mut().fold(Row::new().spacing(3), |row,  tab| {
             row.push(tab.tab_header())
         });
 

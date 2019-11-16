@@ -1,7 +1,7 @@
 use uuid::Uuid;
-use iced::{ button, Application, Button, Column, Element, Text};
+use iced::{ button, Application, Column, Element, Text};
 use file_search::tab::{TabControl, TabItemView, TabMessages};
-use file_search::Message;
+use file_search::{Message, create_button};
 use crate::search::SearchUi;
 mod search;
 
@@ -56,7 +56,7 @@ impl TabItemView for Counter {
         Column::new()
             .push(Text::new(txt.as_str()))
             .push(
-                Button::new(&mut self.btn, Text::new("Inc!"))
+                create_button("Increment", &mut self.btn)
                     .on_press(Message::Inc)
             )
             .into()

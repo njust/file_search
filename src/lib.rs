@@ -4,6 +4,9 @@ use std::fs::{DirEntry};
 use std::process::Stdio;
 
 mod widget;
+use iced::{
+    button, text::HorizontalAlignment, Background,  Button, Color, Text
+};
 
 pub use widget::tab;
 use uuid::Uuid;
@@ -21,6 +24,17 @@ pub enum Message {
     TabSelected(Uuid),
     Inc,
     SearchMsg(SearchMessage)
+}
+
+pub fn create_button<'a, T>(label: &str, state: &'a mut button::State) -> Button<'a, T> {
+    Button::new(
+        state,
+        Text::new(label).horizontal_alignment(HorizontalAlignment::Center))
+        .border_radius(4)
+        .background(Background::Color(Color{
+            r: 0.0, g: 0.0, b: 0.2, a: 0.5
+        }))
+        .padding(4)
 }
 
 pub fn open_file(file_path: &String) {
