@@ -3,6 +3,10 @@ use std::collections::{HashSet};
 use std::fs::{DirEntry};
 use std::process::Stdio;
 
+mod widget;
+
+pub use widget::tab;
+
 pub fn open_file(file_path: &String) {
     if cfg!(target_os = "windows") {
         if let Err(err) = std::process::Command::new("cmd")
