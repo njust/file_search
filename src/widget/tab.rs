@@ -1,7 +1,7 @@
 use uuid::Uuid;
 use iced::{
-    scrollable, button, text::HorizontalAlignment, Background, text_input, Application, Button,
-    Color, Column, Element, Length, Scrollable, Text, TextInput, Row
+    button, Background, Button,
+    Color, Column, Element, Length, Text, Row
 };
 
 use std::collections::HashMap;
@@ -103,7 +103,9 @@ impl<Message: 'static + Clone + Debug, MsgSender: TabMessages<Message>> TabContr
             }
         }
 
-        return cols.into();
+        cols
+            .padding(6)
+            .into()
     }
 
     pub fn update(&mut self, message: Message) {

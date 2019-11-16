@@ -1,16 +1,9 @@
 use uuid::Uuid;
-use iced::{
-    scrollable, button, text::HorizontalAlignment, Background, text_input, Application, Button,
-    Color, Column, Element, Length, Scrollable, Text, TextInput, Row
-};
-
+use iced::{ button, Application, Button, Column, Element, Text};
 use file_search::tab::{TabControl, TabItemView, TabMessages};
-
-#[derive(Debug, Clone, Copy)]
-enum Message {
-    TabSelected(Uuid),
-    Inc
-}
+use file_search::Message;
+use crate::search::SearchUi;
+mod search;
 
 struct TM {}
 impl TabMessages<Message> for TM {
@@ -19,11 +12,11 @@ impl TabMessages<Message> for TM {
     }
 }
 
-struct SearchUi {
+struct FileSearch {
     tab: TabControl<Message, TM>,
 }
 
-impl Application for SearchUi {
+impl Application for FileSearch {
     type Message = Message;
 
     fn title(&self) -> String {
@@ -37,12 +30,16 @@ impl Application for SearchUi {
             }
             Message::Inc => {
                 self.tab.update(message);
+            },
+            msg => {
+                self.tab.update(msg)
             }
         }
     }
 
     fn view(&mut self) -> Element<Message> {
-      self.tab.view()
+//      self.tab.view().explain(Color::BLACK)
+        self.tab.view()
     }
 }
 
@@ -75,41 +72,12 @@ impl TabItemView for Counter {
     }
 }
 
-
-#[derive(Default)]
-struct Counter2 {
-    cnt: i32,
-    btn: button::State,
-}
-
-impl TabItemView for Counter2 {
-    type Message = Message;
-    fn view(&mut self) -> Element<Message> {
-        let txt = format!("Cnaaaat: {}", self.cnt);
-        Column::new()
-            .push(Text::new(txt.as_str()))
-            .push(
-                Button::new(&mut self.btn, Text::new("Inc!"))
-                    .on_press(Message::Inc)
-            )
-            .into()
-    }
-
-    fn update(&mut self, message: Self::Message) {
-        match message {
-            Message::Inc => {
-                self.cnt += 1;
-            }
-            _ => ()
-        }
-    }
-}
-
 fn main() {
     let mut tc = TabControl::new();
-    tc.add("Tab1", Counter::default());
-    tc.add("Tab2", Counter2::default());
-    let sui = SearchUi {
+    tc.add("Search", SearchUi::default());
+    tc.add("Test 1", Counter::default());
+    tc.add("Test 2", Counter::default());
+    let sui = FileSearch {
         tab: tc
     };
     sui.run();

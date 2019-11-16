@@ -6,6 +6,22 @@ use std::process::Stdio;
 mod widget;
 
 pub use widget::tab;
+use uuid::Uuid;
+
+#[derive(Debug, Clone)]
+pub enum SearchMessage {
+    InputChanged(String),
+    SearchPressed,
+    ItemSelected(String),
+    LoadMorePressed
+}
+
+#[derive(Debug, Clone)]
+pub enum Message {
+    TabSelected(Uuid),
+    Inc,
+    SearchMsg(SearchMessage)
+}
 
 pub fn open_file(file_path: &String) {
     if cfg!(target_os = "windows") {
