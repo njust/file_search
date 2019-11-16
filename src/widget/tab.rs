@@ -70,7 +70,8 @@ impl<Message: 'static + Clone + Debug, MsgSender: TabMessages<Message>> TabContr
         }
     }
 
-    pub fn add_tab(&mut self, label: &'static str, view: Box<dyn TabItemView<Message =Message>>) {
+    pub fn add<T: 'static + TabItemView<Message = Message>>(&mut self, label: &'static str, view: T) {
+        let view = Box::new(view);
         let id = Uuid::new_v4();
         self.tab_header.insert(id, TabItem::new(label, id));
         self.tab_items.insert(id, view);

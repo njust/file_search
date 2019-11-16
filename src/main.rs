@@ -4,7 +4,6 @@ use iced::{
     Color, Column, Element, Length, Scrollable, Text, TextInput, Row
 };
 
-use std::collections::HashMap;
 use file_search::tab::{TabControl, TabItemView, TabMessages};
 
 #[derive(Debug, Clone, Copy)]
@@ -76,9 +75,40 @@ impl TabItemView for Counter {
     }
 }
 
+
+#[derive(Default)]
+struct Counter2 {
+    cnt: i32,
+    btn: button::State,
+}
+
+impl TabItemView for Counter2 {
+    type Message = Message;
+    fn view(&mut self) -> Element<Message> {
+        let txt = format!("Cnaaaat: {}", self.cnt);
+        Column::new()
+            .push(Text::new(txt.as_str()))
+            .push(
+                Button::new(&mut self.btn, Text::new("Inc!"))
+                    .on_press(Message::Inc)
+            )
+            .into()
+    }
+
+    fn update(&mut self, message: Self::Message) {
+        match message {
+            Message::Inc => {
+                self.cnt += 1;
+            }
+            _ => ()
+        }
+    }
+}
+
 fn main() {
     let mut tc = TabControl::new();
-    tc.add_tab("Tab1", Box::new(Counter::default()));
+    tc.add("Tab1", Counter::default());
+    tc.add("Tab2", Counter2::default());
     let sui = SearchUi {
         tab: tc
     };
