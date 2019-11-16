@@ -82,6 +82,9 @@ impl<Message: 'static + Clone + Debug, MsgSender: TabMessages<Message>> TabContr
         let id = Uuid::new_v4();
         self.tab_header.push(TabItem::new(label, id));
         self.tab_items.insert(id, view);
+        if None == self.selected_tab {
+            self.selected_tab = Some(id);
+        }
     }
 
     pub fn select_tab(&mut self, id: Uuid) {
