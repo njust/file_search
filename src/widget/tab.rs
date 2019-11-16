@@ -41,6 +41,13 @@ where Message: 'static + Clone + Debug
             &mut self.button,
             Text::new(&self.label),
         )
+            .background(Background::Color(Color {
+                r: 0.0,
+                g: 0.0,
+                b: 1.0,
+                a: 0.0
+            }))
+            .padding(6)
             .on_press(MsgSender::tab_selected(self.id))
             .width(Length::Units(200))
             .into()
@@ -82,11 +89,12 @@ impl<Message: 'static + Clone + Debug, MsgSender: TabMessages<Message>> TabContr
     }
 
     pub fn view(&mut self) -> Element<Message> {
-        let tabs = self.tab_header.iter_mut().fold(Row::new(), |row, (_tab_id, tab)| {
+        let tabs = self.tab_header.iter_mut().fold(Row::new().spacing(3), |row, (_tab_id, tab)| {
             row.push(tab.tab_header())
         });
 
         let mut cols = Column::new()
+            .spacing(5)
             .push(tabs);
 
         if let Some(selected_tab_id) = self.selected_tab {
