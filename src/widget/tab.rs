@@ -1,6 +1,6 @@
 use uuid::Uuid;
 use iced::{
-    button, Background, Button,
+    button, Background, Button, text::HorizontalAlignment,
     Color, Column, Element, Length, Text, Row
 };
 
@@ -35,18 +35,19 @@ where Message: 'static + Clone + Debug
         }
     }
 
-    fn tab_header(&mut self) -> Element<Message>
+    fn tab_header(&mut self, active: bool) -> Element<Message>
     {
+        let color = if active {
+            Color { r: 0.0, g: 0.0, b: 0.5, a: 1.0 }
+        }else {
+            Color { r: 0.0, g: 0.0, b: 1.0, a: 0.0 }
+        };
+
         Button::new(
             &mut self.button,
-            Text::new(&self.label),
+            Text::new(&self.label).horizontal_alignment(HorizontalAlignment::Center),
         )
-            .background(Background::Color(Color {
-                r: 0.0,
-                g: 0.0,
-                b: 1.0,
-                a: 0.0
-            }))
+            .background(Background::Color(color))
             .padding(6)
             .on_press(MsgSender::tab_selected(self.id))
             .width(Length::Units(200))
@@ -92,8 +93,13 @@ impl<Message: 'static + Clone + Debug, MsgSender: TabMessages<Message>> TabContr
     }
 
     pub fn view(&mut self) -> Element<Message> {
+        let selected_tab = &self.selected_tab.clone();
         let tabs = self.tab_header.iter_mut().fold(Row::new().spacing(3), |row,  tab| {
-            row.push(tab.tab_header())
+            let mut active = false;
+            if let Some(active_tab_id) = selected_tab {
+                active = active_tab_id == &tab.id;
+            }
+            row.push(tab.tab_header(active))
         });
 
         let mut cols = Column::new()
