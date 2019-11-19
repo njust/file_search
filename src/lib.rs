@@ -10,19 +10,56 @@ use iced::{
 
 pub use widget::tab;
 use uuid::Uuid;
+use std::error::Error;
+
+#[derive(Debug, Clone)]
+pub struct Search {
+    pub query: String,
+    pub path: String,
+}
+
+impl Search {
+    pub fn new(query: String, path: String) -> Self {
+        Self {
+            query,
+            path
+        }
+    }
+    pub async fn run(self) -> Result<Vec<String>, SearchError> {
+        let mut res = vec![];
+        let iter = RecursiveDirIterator::new(&self.path).map_err(|_|SearchError::General)?;
+        let search = self.query.to_lowercase();
+        for entry in iter {
+            if let Ok(entry) = entry {
+                let path = entry.path();
+                let path = path.to_str().ok_or(SearchError::InvalidPath)?.to_owned();
+                if path.to_lowercase().contains(&search) {
+                    res.push(path);
+                }
+            }
+        }
+        Ok(res)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum SearchError {
+    General,
+    InvalidPath,
+}
 
 #[derive(Debug, Clone)]
 pub enum SearchMessage {
     InputChanged(String),
-    SearchPressed,
+    SearchPressed(String),
     ItemSelected(String),
-    LoadMorePressed,
 }
 
 #[derive(Debug, Clone)]
 pub enum Message {
     TabSelected(Uuid),
     Inc,
+    SearchResult(Result<Vec<String>, SearchError>),
     SearchMsg(SearchMessage)
 }
 
@@ -91,6 +128,7 @@ pub fn is_dir(e: &DirEntry) -> bool {
     }
     return false;
 }
+
 
 pub struct RecursiveDirIterator {
     stack: Vec<std::fs::ReadDir>

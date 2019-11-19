@@ -1,7 +1,7 @@
 use uuid::Uuid;
 use iced::{ button, Application, Column, Element, Text, Command};
 use file_search::tab::{TabControl, TabItemView, TabMessages};
-use file_search::{Message, create_button};
+use file_search::{Message, create_button, Search, SearchMessage};
 use crate::search::SearchUi;
 
 mod search;
@@ -27,7 +27,7 @@ impl Application for FileSearch {
         tc.add("Test 2", Counter::default());
         (
             FileSearch {
-                tab: tc
+                tab: tc,
             },
             Command::none()
         )
@@ -42,9 +42,21 @@ impl Application for FileSearch {
             Message::TabSelected(id) => {
                 self.tab.select_tab(id);
             }
-            Message::Inc => {
-                return self.tab.update(message);
-            },
+            Message::SearchMsg(ref search) => {
+                match search {
+                    SearchMessage::SearchPressed(search) => {
+                        if let Some(home_dir) = dirs::home_dir() {
+                            let home = String::from(home_dir.to_str().expect("Invalid homepath"));
+                            return Command::perform(
+                                Search::new(search.to_owned(), home).run(), Message::SearchResult
+                            );
+                        }
+                    }
+                    _ => {
+                        return self.tab.update(Message::SearchMsg(search.clone()))
+                    }
+                }
+            }
             msg => {
                 return self.tab.update(msg);
             }
