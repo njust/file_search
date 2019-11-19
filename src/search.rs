@@ -2,7 +2,7 @@ use std::borrow::{BorrowMut};
 use file_search::{RecursiveDirIterator, open_file, Message, SearchMessage, create_button};
 use iced::{
     scrollable, button, text_input, Button,
-    Column, Element, Length, Scrollable, Text, TextInput, Row
+    Column, Element, Length, Scrollable, Text, TextInput, Row, Command
 };
 
 use dirs;
@@ -148,14 +148,13 @@ impl TabItemView for SearchUi {
         })
     }
 
-    fn update(&mut self, message: Self::Message) {
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             Message::SearchMsg(search_msg) => {
                 self.handle_message(search_msg)
             }
             _ => ()
         }
+        Command::none()
     }
-
-
 }

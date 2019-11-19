@@ -16,7 +16,7 @@ pub enum SearchMessage {
     InputChanged(String),
     SearchPressed,
     ItemSelected(String),
-    LoadMorePressed
+    LoadMorePressed,
 }
 
 #[derive(Debug, Clone)]

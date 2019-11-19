@@ -43,10 +43,10 @@ impl Application for FileSearch {
                 self.tab.select_tab(id);
             }
             Message::Inc => {
-                self.tab.update(message);
+                return self.tab.update(message);
             },
             msg => {
-                self.tab.update(msg)
+                return self.tab.update(msg);
             }
         }
         Command::none()
@@ -77,13 +77,14 @@ impl TabItemView for Counter {
             .into()
     }
 
-    fn update(&mut self, message: Self::Message) {
+    fn update(&mut self, message: Self::Message) -> Command<Message> {
         match message {
             Message::Inc => {
                 self.cnt += 1;
             }
             _ => ()
         }
+        Command::none()
     }
 }
 

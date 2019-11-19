@@ -1,7 +1,7 @@
 use uuid::Uuid;
 use iced::{
     button, Background, Button, text::HorizontalAlignment,
-    Color, Column, Element, Length, Text, Row
+    Color, Column, Element, Length, Text, Row, Command
 };
 
 use std::collections::HashMap;
@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 pub trait TabItemView {
     type Message;
     fn view(&mut self) -> Element<Self::Message>;
-    fn update(&mut self, message: Self::Message);
+    fn update(&mut self, message: Self::Message) -> Command<Self::Message>;
 }
 
 pub struct TabItem<Message, MsgSender: TabMessages<Message>> {
@@ -117,11 +117,12 @@ impl<Message: 'static + Clone + Debug, MsgSender: TabMessages<Message>> TabContr
             .into()
     }
 
-    pub fn update(&mut self, message: Message) {
+    pub fn update(&mut self, message: Message) -> Command<Message> {
         if let Some(selected_tab_id) = self.selected_tab {
             if let Some(selected_tab) = self.tab_items.get_mut(&selected_tab_id) {
                 selected_tab.update(message);
             }
         }
+        Command::none()
     }
 }
