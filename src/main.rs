@@ -1,8 +1,9 @@
 use uuid::Uuid;
-use iced::{ button, Application, Column, Element, Text};
+use iced::{ button, Application, Column, Element, Text, Command};
 use file_search::tab::{TabControl, TabItemView, TabMessages};
 use file_search::{Message, create_button};
 use crate::search::SearchUi;
+
 mod search;
 
 struct TM {}
@@ -19,11 +20,24 @@ struct FileSearch {
 impl Application for FileSearch {
     type Message = Message;
 
+    fn new() -> (FileSearch, Command<Message>) {
+        let mut tc = TabControl::new();
+        tc.add("Search", SearchUi::default());
+        tc.add("Test 1", Counter::default());
+        tc.add("Test 2", Counter::default());
+        (
+            FileSearch {
+                tab: tc
+            },
+            Command::none()
+        )
+    }
+
     fn title(&self) -> String {
         String::from("Search")
     }
 
-    fn update(&mut self, message: Self::Message) {
+    fn update(&mut self, message: Self::Message) -> Command<Message> {
         match message {
             Message::TabSelected(id) => {
                 self.tab.select_tab(id);
@@ -35,6 +49,7 @@ impl Application for FileSearch {
                 self.tab.update(msg)
             }
         }
+        Command::none()
     }
 
     fn view(&mut self) -> Element<Message> {
@@ -73,12 +88,5 @@ impl TabItemView for Counter {
 }
 
 fn main() {
-    let mut tc = TabControl::new();
-    tc.add("Search", SearchUi::default());
-    tc.add("Test 1", Counter::default());
-    tc.add("Test 2", Counter::default());
-    let sui = FileSearch {
-        tab: tc
-    };
-    sui.run();
+    FileSearch::run();
 }

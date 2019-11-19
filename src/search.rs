@@ -110,7 +110,7 @@ impl SearchUi {
         Column::new()
             .push(search_bar)
             .push(result_scrollable)
-            .height(Length::Units(600))
+            .height(Length::Fill)
             .into()
     }
 
