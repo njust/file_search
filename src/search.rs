@@ -12,6 +12,7 @@ pub struct SearchUi {
     scrollable: scrollable::State,
     button: button::State,
     search_text : String,
+    search_active: bool,
     search_results: Vec<ResultItem>,
 }
 
@@ -42,15 +43,12 @@ impl ResultItem {
 
 impl SearchUi {
     fn search_page(&mut self) -> Element<SearchMessage>  {
-
         let input = TextInput::new(
             &mut self.input,
             "Search",
             &self.search_text,
             SearchMessage::InputChanged
-        )
-//            .on_submit(SearchMessage::SearchPressed(search))
-            .padding(4);
+        ).padding(4);
 
         let search = self.search_text.clone();
         let btn = create_button("Search", &mut self.button)
@@ -61,23 +59,30 @@ impl SearchUi {
             .push(input)
             .push(btn);
 
-        let results = self.search_results.iter_mut().fold(
-            Column::new().spacing(4),
-            | column, result| {
-                column.push(result.view())
-            });
+        if self.search_active {
+            Column::new()
+                .push(search_bar)
+                .push(Text::new("Searching.."))
+                .height(Length::Fill)
+                .into()
+        }else {
+            let results = self.search_results.iter_mut().fold(
+                Column::new().spacing(4),
+                | column, result| {
+                    column.push(result.view())
+                });
 
-        let result_scrollable = Scrollable::new(&mut self.scrollable)
-            .padding(15)
-            .height(Length::Fill)
-            .push(results);
-
-
-        Column::new()
-            .push(search_bar)
-            .push(result_scrollable)
-            .height(Length::Fill)
-            .into()
+            Column::new()
+                .push(search_bar)
+                .push(
+                    Scrollable::new(&mut self.scrollable)
+                        .padding(15)
+                        .height(Length::Fill)
+                        .push(results)
+                )
+                .height(Length::Fill)
+                .into()
+        }
     }
 
     fn handle_message(&mut self, message: SearchMessage) {
@@ -88,7 +93,10 @@ impl SearchUi {
             SearchMessage::ItemSelected(ref item) => {
                 open_file(item);
             }
-            _ => ()
+            SearchMessage::SearchPressed(_) => {
+                self.search_results.clear();
+                self.search_active = true;
+            }
         }
     }
 }
@@ -105,6 +113,7 @@ impl TabItemView for SearchUi {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             Message::SearchResult(Ok(r)) => {
+                self.search_active = false;
                 for i in r {
                     self.search_results.push(ResultItem::new(i));
                 }

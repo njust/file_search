@@ -10,7 +10,6 @@ use iced::{
 
 pub use widget::tab;
 use uuid::Uuid;
-use std::error::Error;
 
 #[derive(Debug, Clone)]
 pub struct Search {
