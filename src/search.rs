@@ -6,13 +6,18 @@ use iced::{
 
 use file_search::tab::TabItemView;
 
+const PAGE_SIZE: i32 = 50;
+
 #[derive(Default)]
 pub struct SearchUi {
     input: text_input::State,
     scrollable: scrollable::State,
     button: button::State,
+    show_more_btn: button::State,
     search_text : String,
     search_active: bool,
+    show_more: bool,
+    offset: i32,
     search_results: Vec<ResultItemWidget>,
 }
 
@@ -66,20 +71,30 @@ impl SearchUi {
                 .height(Length::Fill)
                 .into()
         }else {
-            let results = self.search_results.iter_mut().fold(
-                Column::new().spacing(4),
-                | column, result| {
-                    column.push(result.view())
-                });
+            let mut results = Column::new().spacing(4);
+            for (i, search_result) in &mut self.search_results.iter_mut().enumerate() {
+                if i as i32 >= (self.offset + PAGE_SIZE) {
+                    self.show_more = true;
+                    break;
+                }
+                results = results.push(search_result.view());
+            }
+
+            let mut col = Scrollable::new(&mut self.scrollable)
+                .padding(15)
+                .height(Length::Fill)
+                .push(results);
+
+            if self.show_more {
+                col = col.push(
+                    create_button("Load more", &mut self.show_more_btn)
+                        .on_press(SearchMessage::ShowMore)
+                );
+            }
 
             Column::new()
                 .push(search_bar)
-                .push(
-                    Scrollable::new(&mut self.scrollable)
-                        .padding(15)
-                        .height(Length::Fill)
-                        .push(results)
-                )
+                .push(col)
                 .height(Length::Fill)
                 .into()
         }
@@ -95,7 +110,12 @@ impl SearchUi {
             }
             SearchMessage::SearchPressed(_) => {
                 self.search_results.clear();
+                self.show_more = false;
+                self.offset = 0;
                 self.search_active = true;
+            }
+            SearchMessage::ShowMore => {
+                self.offset += PAGE_SIZE;
             }
         }
     }
