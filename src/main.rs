@@ -1,4 +1,3 @@
-use uuid::Uuid;
 use iced::{ button, Application, Column, Element, Text, Command};
 use file_search::tab::{TabControl, TabItemView, TabMessages};
 use file_search::{Message, create_button, Search, SearchMessage};
@@ -7,7 +6,7 @@ mod search;
 
 struct TM {}
 impl TabMessages<Message> for TM {
-    fn tab_selected(id: Uuid) -> Message {
+    fn tab_selected(id: i16) -> Message {
         Message::TabSelected(id)
     }
 }

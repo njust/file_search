@@ -1,4 +1,4 @@
-use file_search::{open_file, Message, SearchMessage, create_button};
+use file_search::{open_file, Message, SearchMessage, create_button, ResultItem};
 use iced::{
     scrollable, button, text_input, Button,
     Column, Element, Length, Scrollable, Text, TextInput, Row, Command
@@ -13,30 +13,30 @@ pub struct SearchUi {
     button: button::State,
     search_text : String,
     search_active: bool,
-    search_results: Vec<ResultItem>,
+    search_results: Vec<ResultItemWidget>,
 }
 
 #[derive(Debug, Default)]
-struct ResultItem {
-    path: String,
+struct ResultItemWidget {
+    item: ResultItem,
     button: button::State
 }
 
-impl ResultItem {
-    fn new(path: String) -> Self {
-        ResultItem {
+impl ResultItemWidget {
+    fn new(item: ResultItem) -> Self {
+        ResultItemWidget {
             button: button::State::default(),
-            path
+            item
         }
     }
 
     fn view(&mut self) -> Element<SearchMessage> {
         Button::new(
             &mut self.button,
-            Text::new(&self.path)
+            Text::new(&self.item.path)
         )
         .width(Length::Fill)
-        .on_press(SearchMessage::ItemSelected(self.path.clone()))
+        .on_press(SearchMessage::ItemSelected(self.item.path.clone()))
         .into()
     }
 }
@@ -112,10 +112,10 @@ impl TabItemView for SearchUi {
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
-            Message::SearchResult(Ok(r)) => {
+            Message::SearchResult(Ok(search_result)) => {
                 self.search_active = false;
-                for i in r {
-                    self.search_results.push(ResultItem::new(i));
+                for item in search_result {
+                    self.search_results.push(ResultItemWidget::new(item));
                 }
             }
             Message::SearchMsg(search_msg) => {

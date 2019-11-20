@@ -9,11 +9,15 @@ use iced::{
 };
 
 pub use widget::tab;
-use uuid::Uuid;
 
 #[derive(Debug, Clone)]
 pub struct Search {
     pub query: String,
+    pub path: String,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct ResultItem {
     pub path: String,
 }
 
@@ -24,7 +28,7 @@ impl Search {
             path
         }
     }
-    pub async fn run(self) -> Result<Vec<String>, SearchError> {
+    pub async fn run(self) -> Result<Vec<ResultItem>, SearchError> {
         let mut res = vec![];
         let iter = RecursiveDirIterator::new(&self.path).map_err(|_|SearchError::General)?;
         let search = self.query.to_lowercase();
@@ -33,7 +37,9 @@ impl Search {
                 let path = entry.path();
                 let path = path.to_str().ok_or(SearchError::InvalidPath)?.to_owned();
                 if path.to_lowercase().contains(&search) {
-                    res.push(path);
+                    res.push(ResultItem {
+                        path
+                    });
                 }
             }
         }
@@ -56,9 +62,9 @@ pub enum SearchMessage {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    TabSelected(Uuid),
+    TabSelected(i16),
     Inc,
-    SearchResult(Result<Vec<String>, SearchError>),
+    SearchResult(Result<Vec<ResultItem>, SearchError>),
     SearchMsg(SearchMessage)
 }
 

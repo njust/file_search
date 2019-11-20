@@ -1,4 +1,3 @@
-use uuid::Uuid;
 use iced::{
     button, Background, Button, text::HorizontalAlignment,
     Color, Column, Element, Length, Text, Row, Command
@@ -15,7 +14,7 @@ pub trait TabItemView {
 }
 
 pub struct TabItem<Message, MsgSender: TabMessages<Message>> {
-    id: Uuid,
+    id: i16,
     label: String,
     button: button::State,
     mh: PhantomData<MsgSender>,
@@ -25,7 +24,7 @@ pub struct TabItem<Message, MsgSender: TabMessages<Message>> {
 impl<Message, MsgSender: TabMessages<Message>> TabItem<Message, MsgSender>
 where Message: 'static + Clone + Debug
 {
-    pub fn new(label: &'static str, id: Uuid) -> Self {
+    pub fn new(label: &'static str, id: i16) -> Self {
         Self {
             id,
             label: label.to_owned(),
@@ -57,14 +56,14 @@ where Message: 'static + Clone + Debug
 }
 
 pub trait TabMessages<T> {
-    fn tab_selected(id: Uuid) -> T;
+    fn tab_selected(id: i16) -> T;
 }
 
 #[derive(Default)]
 pub struct TabControl<Message, MsgSender: TabMessages<Message>> {
-    tab_items: HashMap<Uuid, Box<dyn TabItemView<Message =Message>>>,
+    tab_items: HashMap<i16, Box<dyn TabItemView<Message =Message>>>,
     tab_header: Vec<TabItem<Message, MsgSender>>,
-    selected_tab: Option<Uuid>,
+    selected_tab: Option<i16>,
     mh: PhantomData<MsgSender>,
 }
 
@@ -80,7 +79,7 @@ impl<Message: 'static + Clone + Debug, MsgSender: TabMessages<Message>> TabContr
 
     pub fn add<T: 'static + TabItemView<Message = Message>>(&mut self, label: &'static str, view: T) {
         let view = Box::new(view);
-        let id = Uuid::new_v4();
+        let id = self.tab_header.len() as i16;
         self.tab_header.push(TabItem::new(label, id));
         self.tab_items.insert(id, view);
         if None == self.selected_tab {
@@ -88,13 +87,13 @@ impl<Message: 'static + Clone + Debug, MsgSender: TabMessages<Message>> TabContr
         }
     }
 
-    pub fn select_tab(&mut self, id: Uuid) {
+    pub fn select_tab(&mut self, id: i16) {
         self.selected_tab = Some(id);
     }
 
     pub fn view(&mut self) -> Element<Message> {
         let selected_tab = &self.selected_tab.clone();
-        let tabs = self.tab_header.iter_mut().fold(Row::new().spacing(3), |row,  tab| {
+        let tabs = self.tab_header.iter_mut().enumerate().fold(Row::new().spacing(3), |row,  (i, tab)| {
             let mut active = false;
             if let Some(active_tab_id) = selected_tab {
                 active = active_tab_id == &tab.id;
