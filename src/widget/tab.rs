@@ -1,5 +1,5 @@
 use iced::{
-    button, Background, Button, text::HorizontalAlignment,
+    button, Background, Button, HorizontalAlignment,
     Color, Column, Element, Length, Text, Row, Command
 };
 
@@ -46,7 +46,6 @@ where Message: 'static + Clone + Debug
             &mut self.button,
             Text::new(&self.label).horizontal_alignment(HorizontalAlignment::Center),
         )
-            .background(Background::Color(color))
             .padding(6)
             .on_press(MsgSender::tab_selected(self.id))
             .width(Length::Units(200))

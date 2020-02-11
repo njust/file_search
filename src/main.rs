@@ -1,10 +1,10 @@
-use iced::{ button, Application, Column, Element, Text, Command};
+use iced::{ button, Application, Column, Element, Text, Command, Settings};
 use file_search::tab::{TabControl, TabItemView, TabMessages};
 use file_search::{Message, create_button, Search, SearchMessage};
 use crate::search::SearchUi;
 mod search;
 
-struct TM {}
+struct TM;
 impl TabMessages<Message> for TM {
     fn tab_selected(id: i16) -> Message {
         Message::TabSelected(id)
@@ -17,6 +17,7 @@ struct FileSearch {
 
 impl Application for FileSearch {
     type Message = Message;
+    type Executor = iced::executor::Default;
 
     fn new() -> (FileSearch, Command<Message>) {
         let mut tc = TabControl::new();
@@ -100,5 +101,5 @@ impl TabItemView for Counter {
 }
 
 fn main() {
-    FileSearch::run();
+    FileSearch::run(Settings::default());
 }
